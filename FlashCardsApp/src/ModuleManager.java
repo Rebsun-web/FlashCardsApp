@@ -10,6 +10,7 @@ public class ModuleManager {
     public ModuleManager() {
         modules = new ArrayList<>();
         loadModules();
+        migrateImagesToStructuredStorage(); // Migrate any old-format modules
     }
 
     public List<Module> getModules() {
@@ -73,5 +74,36 @@ public class ModuleManager {
             }
         }
         return null;
+    }
+
+    public void migrateImagesToStructuredStorage() {
+        boolean needsSave = false;
+
+        for (Module module : modules) {
+            for (Card card : module.getCards()) {
+                if (card.getAnswerType() == Card.AnswerType.IMAGE) {
+                    // This will trigger the migration logic if needed
+                    try {
+                        card.migrateFromOldFormat();
+                        needsSave = true;
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }
+
+        if (needsSave) {
+            saveModules(); // Save modules after migration
+        }
+    }
+
+    public void removeModuleByName(String name) {
+        for (int i = 0; i < modules.size(); i++) {
+            if (modules.get(i).getName().equals(name)) {
+                modules.remove(i);
+                return;
+            }
+        }
     }
 }

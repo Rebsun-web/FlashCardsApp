@@ -60,6 +60,36 @@ public class MainMenuUI extends JFrame {
 
         buttonPanel.add(newModuleButton);
 
+        // Recover images button
+        JButton recoverButton = new JButton("Recover Missing Images");
+        recoverButton.setFont(new Font("Arial", Font.BOLD, 16));
+        recoverButton.setBackground(new Color(205, 92, 92)); // Indian red
+        recoverButton.setForeground(Color.BLACK);
+        recoverButton.setFocusPainted(false);
+        recoverButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                openImageRecoveryTool();
+            }
+        });
+
+        buttonPanel.add(recoverButton);
+
+        // Add recovery button
+        JButton recoverModuleButton = new JButton("Recover Lost Module");
+        recoverModuleButton.setFont(new Font("Arial", Font.BOLD, 16));
+        recoverModuleButton.setBackground(new Color(70, 130, 180)); // Steel blue
+        recoverModuleButton.setForeground(Color.BLACK);
+        recoverModuleButton.setFocusPainted(false);
+        recoverModuleButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                openModuleRecoveryTool();
+            }
+        });
+
+        buttonPanel.add(recoverModuleButton);
+
         // Add all components to frame
         add(titlePanel, BorderLayout.NORTH);
         add(scrollPane, BorderLayout.CENTER);
@@ -67,6 +97,16 @@ public class MainMenuUI extends JFrame {
 
         // Load modules
         refreshModulesList();
+    }
+
+    private void openImageRecoveryTool() {
+        ImageRecoveryTool recoveryTool = new ImageRecoveryTool();
+        recoveryTool.setVisible(true);
+    }
+
+    private void openModuleRecoveryTool() {
+        ModuleRecoveryTool recoveryTool = new ModuleRecoveryTool();
+        recoveryTool.setVisible(true);
     }
 
     private void refreshModulesList() {
