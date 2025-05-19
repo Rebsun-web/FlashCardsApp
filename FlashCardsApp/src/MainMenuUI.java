@@ -60,7 +60,6 @@ public class MainMenuUI extends JFrame {
 
         buttonPanel.add(newModuleButton);
 
-        // Recover images button
         JButton recoverButton = new JButton("Recover Missing Images");
         recoverButton.setFont(new Font("Arial", Font.BOLD, 16));
         recoverButton.setBackground(new Color(205, 92, 92)); // Indian red
@@ -75,7 +74,6 @@ public class MainMenuUI extends JFrame {
 
         buttonPanel.add(recoverButton);
 
-        // Add recovery button
         JButton recoverModuleButton = new JButton("Recover Lost Module");
         recoverModuleButton.setFont(new Font("Arial", Font.BOLD, 16));
         recoverModuleButton.setBackground(new Color(70, 130, 180)); // Steel blue

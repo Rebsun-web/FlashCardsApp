@@ -76,11 +76,19 @@ public class ModuleManager {
         return null;
     }
 
+    // In ModuleManager.java
     public void migrateImagesToStructuredStorage() {
         boolean needsSave = false;
 
         for (Module module : modules) {
+            String moduleName = module.getName();
             for (Card card : module.getCards()) {
+                // Ensure the card knows which module it belongs to
+                if (card.getModuleName() == null || card.getModuleName().isEmpty()) {
+                    card.setModuleName(moduleName);
+                    needsSave = true;
+                }
+
                 if (card.getAnswerType() == Card.AnswerType.IMAGE) {
                     // This will trigger the migration logic if needed
                     try {

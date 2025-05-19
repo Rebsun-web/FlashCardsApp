@@ -607,7 +607,7 @@ public class ModuleViewUI extends JFrame {
                 }
 
                 // Create a new card with updated information
-                Card updatedCard = new Card(question, answer, topic);
+                Card updatedCard = new Card(question, answer, topic, module.getName());
 
                 // Replace the old card with the updated one
                 module.getCards().set(index, updatedCard);
@@ -750,7 +750,7 @@ public class ModuleViewUI extends JFrame {
                 }
 
                 // Create a new card with updated information
-                Card updatedCard = new Card(question, selectedFile[0], topic);
+                Card updatedCard = new Card(question, selectedFile[0], topic, module.getName());
 
                 // Replace the old card with the updated one
                 module.getCards().set(index, updatedCard);
@@ -860,7 +860,7 @@ public class ModuleViewUI extends JFrame {
                     topic = "General";
                 }
 
-                Card newCard = new Card(question, answer, topic);
+                Card newCard = new Card(question, answer, topic, module.getName());
                 module.addCard(newCard);
                 moduleManager.saveModules();
                 updateTopicFilter(); // Update topic filter in case a new topic was added
@@ -975,7 +975,7 @@ public class ModuleViewUI extends JFrame {
         int result = fileChooser.showOpenDialog(this);
         if (result == JFileChooser.APPROVE_OPTION) {
             File selectedFile = fileChooser.getSelectedFile();
-            Card newCard = new Card(question, selectedFile, topic);
+            Card newCard = new Card(question, selectedFile, topic, module.getName());
             module.addCard(newCard);
             moduleManager.saveModules();
             updateTopicFilter(); // Update topic filter in case a new topic was added

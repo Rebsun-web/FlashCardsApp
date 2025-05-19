@@ -1,4 +1,4 @@
-// Card.java - Modified to use FileUtils
+// Card.java - Modified to use module-specific image paths
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
@@ -18,47 +18,52 @@ public class Card implements Serializable {
     private transient ImageIcon imageAnswer;
     private AnswerType answerType;
     private String topic;
+    private String moduleName; // Store the module name for organizing images
 
     // For backward compatibility
     private File imageAnswerFile;
 
     // Constructor for text answer
-    public Card(String question, String textAnswer) {
+    public Card(String question, String textAnswer, String moduleName) {
         this.question = question;
         this.textAnswer = textAnswer;
         this.answerType = AnswerType.TEXT;
         this.topic = "General"; // Default topic
+        this.moduleName = moduleName;
     }
 
     // Constructor for text answer with topic
-    public Card(String question, String textAnswer, String topic) {
+    public Card(String question, String textAnswer, String topic, String moduleName) {
         this.question = question;
         this.textAnswer = textAnswer;
         this.answerType = AnswerType.TEXT;
         this.topic = topic != null && !topic.isEmpty() ? topic : "General";
+        this.moduleName = moduleName;
     }
 
     // Constructor for image answer
-    public Card(String question, File imageFile) {
+    public Card(String question, File imageFile, String moduleName) {
         this.question = question;
+        this.moduleName = moduleName;
         setImageFile(imageFile);
         this.answerType = AnswerType.IMAGE;
         this.topic = "General"; // Default topic
     }
 
     // Constructor for image answer with topic
-    public Card(String question, File imageFile, String topic) {
+    public Card(String question, File imageFile, String topic, String moduleName) {
         this.question = question;
+        this.moduleName = moduleName;
         setImageFile(imageFile);
         this.answerType = AnswerType.IMAGE;
         this.topic = topic != null && !topic.isEmpty() ? topic : "General";
     }
 
-    // Set image file - copies it to the app images directory
+    // Set image file - copies it to the module's images directory
     public void setImageFile(File imageFile) {
         if (imageFile != null && imageFile.exists()) {
-            // Copy the image to our app directory
-            File copiedImage = FileUtils.copyImageToAppDir(imageFile);
+            // Copy the image to our module's directory
+            File copiedImage = FileUtils.copyImageToModuleDir(imageFile, moduleName);
             if (copiedImage != null) {
                 // Store the relative path
                 this.imageAnswerPath = FileUtils.getRelativePath(copiedImage);
@@ -103,6 +108,11 @@ public class Card implements Serializable {
             topic = "General";
         }
 
+        // Initialize moduleName if it's null (for backward compatibility)
+        if (moduleName == null) {
+            moduleName = "General";
+        }
+
         // Migrate old format if needed
         migrateFromOldFormat();
 
@@ -112,8 +122,7 @@ public class Card implements Serializable {
         }
     }
 
-    // In Card.java, update the migrateFromOldFormat method:
-
+    // Updated migration method to handle module-specific paths
     public void migrateFromOldFormat() {
         // If we have an old-style imageAnswerFile but no path
         if (answerType == AnswerType.IMAGE &&
@@ -124,8 +133,8 @@ public class Card implements Serializable {
 
             // First check if the file still exists at the original location
             if (imageAnswerFile.exists()) {
-                // Copy the file to our images directory
-                File copiedImage = FileUtils.copyImageToAppDir(imageAnswerFile);
+                // Copy the file to our module's images directory
+                File copiedImage = FileUtils.migrateImageToModuleDir(imageAnswerFile, moduleName);
                 if (copiedImage != null) {
                     imageAnswerPath = FileUtils.getRelativePath(copiedImage);
                     System.out.println("Successfully migrated to: " + imageAnswerPath);
@@ -183,5 +192,14 @@ public class Card implements Serializable {
     // Added getter for the relative path
     public String getImageAnswerPath() {
         return imageAnswerPath;
+    }
+
+    // Get/set module name
+    public String getModuleName() {
+        return moduleName;
+    }
+
+    public void setModuleName(String moduleName) {
+        this.moduleName = moduleName;
     }
 }
