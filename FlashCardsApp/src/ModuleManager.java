@@ -1,5 +1,6 @@
 // ModuleManager.java
 import java.io.*;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -110,6 +111,28 @@ public class ModuleManager {
         for (int i = 0; i < modules.size(); i++) {
             if (modules.get(i).getName().equals(name)) {
                 modules.remove(i);
+
+                // Delete the serialized file from disk
+                File moduleFile = new File(SAVE_DIRECTORY + File.separator + name + ".ser");
+                if (moduleFile.exists()) {
+                    boolean deleted = moduleFile.delete();
+                    System.out.println("Module file deleted: " + deleted + " - " + moduleFile.getAbsolutePath());
+
+                    // Try force deletion if normal deletion fails
+                    if (!deleted) {
+                        try {
+                            Files.deleteIfExists(moduleFile.toPath());
+                            System.out.println("Module file deleted using Files.deleteIfExists");
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                } else {
+                    System.out.println("Module file not found: " + moduleFile.getAbsolutePath());
+                }
+
+                // Save the updated modules list (without this module)
+                saveModules();
                 return;
             }
         }

@@ -125,6 +125,7 @@ public class ImageRecoveryTool extends JFrame {
         }
     }
 
+    // In ImageRecoveryTool.java - Fix the fixSelectedImage method
     private void fixSelectedImage() {
         if (cardsWithMissingImages.isEmpty()) {
             logArea.append("No missing images to fix.\n");
@@ -144,22 +145,56 @@ public class ImageRecoveryTool extends JFrame {
         if (result == JFileChooser.APPROVE_OPTION) {
             File selectedFile = fileChooser.getSelectedFile();
 
-            // Update the card with the new image
-            card.setImageFile(selectedFile);
+            try {
+                // Get the module this card belongs to
+                String moduleName = card.getModuleName();
+                if (moduleName == null || moduleName.isEmpty()) {
+                    // If no module name is stored in the card, try to find it
+                    Module foundModule = null;
+                    for (Module module : moduleManager.getModules()) {
+                        if (module.getCards().contains(card)) {
+                            foundModule = module;
+                            moduleName = module.getName();
+                            card.setModuleName(moduleName);
+                            break;
+                        }
+                    }
 
-            // Save all modules
-            moduleManager.saveModules();
+                    if (moduleName == null || moduleName.isEmpty()) {
+                        logArea.append("Error: Could not determine module for this card.\n");
+                        return;
+                    }
+                }
 
-            logArea.append("Image fixed successfully: " + selectedFile.getName() + "\n");
+                // Copy the image to the module's directory and update the card
+                File copiedImage = FileUtils.copyImageToModuleDir(selectedFile, moduleName);
+                if (copiedImage != null) {
+                    // Update the card with the new image path
+                    card.setImageFile(selectedFile);
 
-            // Remove the fixed card from the list
-            cardsWithMissingImages.remove(0);
+                    // Explicitly set the image answer to load the image
+                    card.loadImage(); // We need to add this method to Card class
 
-            if (cardsWithMissingImages.isEmpty()) {
-                fixButton.setEnabled(false);
-                logArea.append("All missing images have been fixed!\n");
-            } else {
-                logArea.append("\nNext card to fix: \"" + cardsWithMissingImages.get(0).getQuestion() + "\"\n");
+                    // Save all modules
+                    moduleManager.saveModules();
+
+                    logArea.append("Image fixed successfully: " + copiedImage.getName() + "\n");
+
+                    // Remove the fixed card from the list
+                    cardsWithMissingImages.remove(0);
+
+                    if (cardsWithMissingImages.isEmpty()) {
+                        fixButton.setEnabled(false);
+                        logArea.append("All missing images have been fixed!\n");
+                    } else {
+                        logArea.append("\nNext card to fix: \"" + cardsWithMissingImages.get(0).getQuestion() + "\"\n");
+                    }
+                } else {
+                    logArea.append("Error: Failed to copy image to module directory.\n");
+                }
+            } catch (Exception ex) {
+                logArea.append("Error fixing image: " + ex.getMessage() + "\n");
+                ex.printStackTrace();
             }
         } else {
             logArea.append("Image selection cancelled.\n");

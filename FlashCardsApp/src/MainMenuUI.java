@@ -3,6 +3,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.File;
 
 public class MainMenuUI extends JFrame {
     private ModuleManager moduleManager;
@@ -152,8 +153,9 @@ public class MainMenuUI extends JFrame {
         infoPanel.add(Box.createVerticalStrut(5));
         infoPanel.add(countLabel);
 
+        // Create a panel for all the buttons
         JPanel buttonPanel = new JPanel();
-        buttonPanel.setLayout(new GridLayout(2, 1, 0, 5));
+        buttonPanel.setLayout(new GridLayout(3, 1, 0, 5)); // Changed to 3 rows for 3 buttons
         buttonPanel.setBackground(new Color(230, 230, 250));
 
         JButton viewButton = new JButton("View & Edit");
@@ -184,13 +186,80 @@ public class MainMenuUI extends JFrame {
             }
         });
 
+        // Add delete button
+        JButton deleteButton = new JButton("Delete");
+        deleteButton.setBackground(new Color(220, 20, 60)); // Crimson
+        deleteButton.setForeground(Color.BLACK);
+        deleteButton.setFocusPainted(false);
+        deleteButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                confirmDeleteModule(module);
+            }
+        });
+
         buttonPanel.add(viewButton);
         buttonPanel.add(studyButton);
+        buttonPanel.add(deleteButton); // Add the delete button to the panel
 
         panel.add(infoPanel, BorderLayout.CENTER);
         panel.add(buttonPanel, BorderLayout.EAST);
 
         return panel;
+    }
+
+    // 2. Add a new method to handle the delete confirmation and action
+    private void confirmDeleteModule(Module module) {
+        // Show a confirmation dialog
+        int result = JOptionPane.showConfirmDialog(
+                this,
+                "Are you sure you want to delete the module '" + module.getName() + "'?\n" +
+                        "This will permanently remove all cards in this module.",
+                "Confirm Module Deletion",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.WARNING_MESSAGE
+        );
+
+        if (result == JOptionPane.YES_OPTION) {
+            // User confirmed, proceed with deletion
+            // First, get the module's directory path for later cleanup
+            String moduleName = module.getName();
+            File moduleImagesDir = FileUtils.getModuleImagesDir(moduleName);
+
+            // Remove the module
+            moduleManager.removeModuleByName(moduleName);
+
+            // Clean up image directory (optional, uncomment if you want to delete images too)
+            // This is commented out because you might want to keep images as a backup
+            // deleteDirectoryContents(moduleImagesDir);
+
+            // Refresh the modules list
+            refreshModulesList();
+
+            // Show confirmation
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Module '" + moduleName + "' has been deleted.",
+                    "Module Deleted",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
+        }
+    }
+
+    // 3. Add helper method to clean up module image directory (optional)
+    private void deleteDirectoryContents(File directory) {
+        if (directory.exists() && directory.isDirectory()) {
+            File[] files = directory.listFiles();
+            if (files != null) {
+                for (File file : files) {
+                    if (!file.delete()) {
+                        System.out.println("Failed to delete file: " + file.getAbsolutePath());
+                    }
+                }
+            }
+            // Optionally delete the directory itself if you want
+            // directory.delete();
+        }
     }
 
     private void createNewModule() {

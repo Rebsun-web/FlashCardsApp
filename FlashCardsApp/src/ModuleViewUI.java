@@ -449,9 +449,22 @@ public class ModuleViewUI extends JFrame {
             textPreview.setFont(new Font("Arial", Font.ITALIC, 14));
             answerPanel.add(textPreview);
         } else {
-            JLabel imagePreview = new JLabel("Image answer available");
-            imagePreview.setFont(new Font("Arial", Font.ITALIC, 14));
-            answerPanel.add(imagePreview);
+            // Load the image if needed
+            if (card.getImageAnswer() == null) {
+                card.loadImage();
+            }
+
+            if (card.getImageAnswer() != null) {
+                // Create a small thumbnail preview
+                ImageIcon thumbIcon = ImageUtility.createThumbnail(card.getImageAnswer(), 100, 60);
+                JLabel imagePreview = new JLabel(thumbIcon);
+                imagePreview.setFont(new Font("Arial", Font.ITALIC, 14));
+                answerPanel.add(imagePreview);
+            } else {
+                JLabel imagePreview = new JLabel("Image unavailable");
+                imagePreview.setFont(new Font("Arial", Font.ITALIC, 14));
+                answerPanel.add(imagePreview);
+            }
         }
 
         // Buttons panel

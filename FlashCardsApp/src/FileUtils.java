@@ -61,15 +61,28 @@ public class FileUtils {
         }
     }
 
-    // Copy an image to the module-specific directory
+    // In FileUtils.java - Enhance the copyImageToModuleDir method
     public static File copyImageToModuleDir(File sourceImage, String moduleName) {
         if (sourceImage == null || !sourceImage.exists()) {
+            System.out.println("Source image is null or doesn't exist");
             return null;
+        }
+
+        // Default to "General" if module name is empty
+        if (moduleName == null || moduleName.isEmpty()) {
+            moduleName = "General";
         }
 
         try {
             // Get destination directory
             File moduleImagesDir = getModuleImagesDir(moduleName);
+            System.out.println("Module images directory: " + moduleImagesDir.getAbsolutePath());
+
+            // Create directory if it doesn't exist
+            if (!moduleImagesDir.exists()) {
+                boolean created = moduleImagesDir.mkdirs();
+                System.out.println("Created directory: " + created);
+            }
 
             // Create a unique filename based on timestamp and original name
             String timeStamp = String.valueOf(System.currentTimeMillis());
@@ -84,13 +97,22 @@ public class FileUtils {
                     dotIndex > 0 ? dotIndex : origName.length())) + extension;
 
             File destFile = new File(moduleImagesDir, newFileName);
+            System.out.println("Destination file: " + destFile.getAbsolutePath());
 
             // Copy the file
             Files.copy(sourceImage.toPath(), destFile.toPath(),
                     StandardCopyOption.REPLACE_EXISTING);
 
-            return destFile;
+            // Verify the file was copied successfully
+            if (destFile.exists() && destFile.length() > 0) {
+                System.out.println("File copied successfully: " + destFile.length() + " bytes");
+                return destFile;
+            } else {
+                System.out.println("File copy failed or empty file");
+                return null;
+            }
         } catch (IOException e) {
+            System.out.println("Error copying image: " + e.getMessage());
             e.printStackTrace();
             return null;
         }

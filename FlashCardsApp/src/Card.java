@@ -73,10 +73,17 @@ public class Card implements Serializable {
         }
     }
 
-    private void loadImage() {
+    public void loadImage() {
         File imageFile = getImageAnswerFile();
         if (imageFile != null && imageFile.exists()) {
             imageAnswer = new ImageIcon(imageFile.getAbsolutePath());
+            // Output debug information
+            System.out.println("Loaded image from: " + imageFile.getAbsolutePath());
+            System.out.println("Image icon size: " + imageAnswer.getIconWidth() + "x" + imageAnswer.getIconHeight());
+        } else {
+            System.out.println("Failed to load image. File does not exist: " +
+                    (imageFile != null ? imageFile.getAbsolutePath() : "null"));
+            imageAnswer = null;
         }
     }
 
@@ -122,31 +129,45 @@ public class Card implements Serializable {
         }
     }
 
-    // Updated migration method to handle module-specific paths
+    // In Card.java - Improve the migrateFromOldFormat method
     public void migrateFromOldFormat() {
         // If we have an old-style imageAnswerFile but no path
-        if (answerType == AnswerType.IMAGE &&
-                imageAnswerFile != null &&
-                (imageAnswerPath == null || imageAnswerPath.isEmpty())) {
+        if (answerType == AnswerType.IMAGE) {
+            // First ensure we have a module name
+            if (moduleName == null || moduleName.isEmpty()) {
+                moduleName = "General";
+                System.out.println("Setting default module name: General");
+            }
 
-            System.out.println("Migrating image: " + imageAnswerFile.getAbsolutePath());
+            if (imageAnswerFile != null &&
+                    (imageAnswerPath == null || imageAnswerPath.isEmpty())) {
+                System.out.println("Migrating image: " + imageAnswerFile.getAbsolutePath());
 
-            // First check if the file still exists at the original location
-            if (imageAnswerFile.exists()) {
-                // Copy the file to our module's images directory
-                File copiedImage = FileUtils.migrateImageToModuleDir(imageAnswerFile, moduleName);
-                if (copiedImage != null) {
-                    imageAnswerPath = FileUtils.getRelativePath(copiedImage);
-                    System.out.println("Successfully migrated to: " + imageAnswerPath);
+                // First check if the file still exists at the original location
+                if (imageAnswerFile.exists()) {
+                    // Copy the file to our module's images directory
+                    File copiedImage = FileUtils.migrateImageToModuleDir(imageAnswerFile, moduleName);
+                    if (copiedImage != null) {
+                        imageAnswerPath = FileUtils.getRelativePath(copiedImage);
+                        System.out.println("Successfully migrated to: " + imageAnswerPath);
+
+                        // Load the image to ensure it works
+                        loadImage();
+                    } else {
+                        System.out.println("Failed to copy image");
+                    }
                 } else {
-                    System.out.println("Failed to copy image");
-                }
-            } else {
-                // The original file doesn't exist anymore, handle this case
-                System.out.println("Original image not found");
+                    // The original file doesn't exist anymore, handle this case
+                    System.out.println("Original image not found: " + imageAnswerFile.getAbsolutePath());
 
-                // Use a placeholder or default image
-                imageAnswerPath = "missing_image";
+                    // Use a placeholder or default image path
+                    imageAnswerPath = "missing_image";
+                }
+            }
+            // Check if we have a path but the image is not loaded
+            else if (imageAnswerPath != null && !imageAnswerPath.isEmpty() && imageAnswer == null) {
+                System.out.println("Image path exists but image not loaded: " + imageAnswerPath);
+                loadImage();
             }
         }
     }
