@@ -155,7 +155,7 @@ public class MainMenuUI extends JFrame {
 
         // Create a panel for all the buttons
         JPanel buttonPanel = new JPanel();
-        buttonPanel.setLayout(new GridLayout(3, 1, 0, 5)); // Changed to 3 rows for 3 buttons
+        buttonPanel.setLayout(new GridLayout(4, 1, 0, 5)); // Changed to 4 rows
         buttonPanel.setBackground(new Color(230, 230, 250));
 
         JButton viewButton = new JButton("View & Edit");
@@ -198,9 +198,25 @@ public class MainMenuUI extends JFrame {
             }
         });
 
+        // Add export button
+        JButton exportButton = new JButton("Export PDF");
+        exportButton.setBackground(new Color(255, 165, 0)); // Orange
+        exportButton.setForeground(Color.BLACK);
+        exportButton.setFocusPainted(false);
+        exportButton.addActionListener(e -> {
+            if (module.getCardCount() > 0) {
+                ModulePDFExporter.showExportDialog(module, MainMenuUI.this);
+            } else {
+                JOptionPane.showMessageDialog(MainMenuUI.this,
+                        "This module has no cards. Add some cards before exporting.",
+                        "Empty Module", JOptionPane.INFORMATION_MESSAGE);
+            }
+        });
+
         buttonPanel.add(viewButton);
         buttonPanel.add(studyButton);
-        buttonPanel.add(deleteButton); // Add the delete button to the panel
+        buttonPanel.add(exportButton);
+        buttonPanel.add(deleteButton);
 
         panel.add(infoPanel, BorderLayout.CENTER);
         panel.add(buttonPanel, BorderLayout.EAST);
@@ -292,7 +308,7 @@ public class MainMenuUI extends JFrame {
     }
 
     private void openStudyView(Module module) {
-        StudyUI studyView = new StudyUI(module, this);
+        StudyUI studyView = new StudyUI(module, this, moduleManager);
         studyView.setVisible(true);
         this.setVisible(false);
     }

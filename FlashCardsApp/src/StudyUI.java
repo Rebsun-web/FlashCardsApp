@@ -14,6 +14,7 @@ public class StudyUI extends JFrame {
 
     private Module module;
     private MainMenuUI mainMenuUI;
+    private ModuleManager moduleManager;
     private JPanel cardPanel;
     private JLabel questionLabel;
     private JTextArea questionText;
@@ -30,6 +31,7 @@ public class StudyUI extends JFrame {
     private JButton prevButton;
     private JButton nextButton;
     private JButton shuffleButton;
+    private JButton deleteButton;
     private JButton zoomInButton;
     private JButton zoomOutButton;
     private JButton resetZoomButton;
@@ -37,9 +39,10 @@ public class StudyUI extends JFrame {
 
     private JScrollPane imageScrollPane;
 
-    public StudyUI(Module module, MainMenuUI mainMenuUI) {
+    public StudyUI(Module module, MainMenuUI mainMenuUI, ModuleManager moduleManager) {
         this.module = module;
         this.mainMenuUI = mainMenuUI;
+        this.moduleManager = moduleManager;
 
         // Make a copy of the cards for this study session
         studyCards = new ArrayList<>(module.getCards());
@@ -247,9 +250,14 @@ public class StudyUI extends JFrame {
             }
         });
 
+        deleteButton = new JButton("Delete Card");
+        styleButton(deleteButton, new Color(220, 20, 60)); // Crimson
+        deleteButton.addActionListener(e -> deleteCurrentCard());
+
         navPanel.add(prevButton);
         navPanel.add(toggleAnswerButton);
         navPanel.add(nextButton);
+        navPanel.add(deleteButton);
 
         // Back button
         JPanel bottomPanel = new JPanel(new BorderLayout());
@@ -274,6 +282,60 @@ public class StudyUI extends JFrame {
         add(headerPanel, BorderLayout.NORTH);
         add(cardPanel, BorderLayout.CENTER);
         add(controlsPanel, BorderLayout.SOUTH);
+    }
+
+    private void deleteCurrentCard() {
+        if (studyCards.isEmpty()) {
+            return;
+        }
+
+        Card currentCard = studyCards.get(currentCardIndex);
+
+        // Show confirmation dialog
+        int result = JOptionPane.showConfirmDialog(
+                this,
+                "Are you sure you want to delete this card?\n\nQuestion: " +
+                        currentCard.getQuestion().substring(0, Math.min(50, currentCard.getQuestion().length())) +
+                        (currentCard.getQuestion().length() > 50 ? "..." : ""),
+                "Confirm Card Deletion",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.WARNING_MESSAGE
+        );
+
+        if (result == JOptionPane.YES_OPTION) {
+            // Remove from both the study list and the original module
+            studyCards.remove(currentCardIndex);
+
+            // Find and remove from the original module
+            List<Card> moduleCards = module.getCards();
+            int moduleIndex = moduleCards.indexOf(currentCard);
+            if (moduleIndex >= 0) {
+                module.removeCard(moduleIndex); // Use index instead of Card object
+            }
+
+            moduleManager.saveModules();
+
+            if (studyCards.isEmpty()) {
+                // No more cards left
+                JOptionPane.showMessageDialog(this,
+                        "No more cards left in this study session.",
+                        "Study Complete", JOptionPane.INFORMATION_MESSAGE);
+                returnToMainMenu();
+                return;
+            }
+
+            // Adjust current index if necessary
+            if (currentCardIndex >= studyCards.size()) {
+                currentCardIndex = studyCards.size() - 1;
+            }
+
+            // Show the next card
+            showCurrentCard();
+
+            JOptionPane.showMessageDialog(this,
+                    "Card deleted successfully.",
+                    "Card Deleted", JOptionPane.INFORMATION_MESSAGE);
+        }
     }
 
     private void filterCardsByTopic(String topic) {
@@ -307,8 +369,6 @@ public class StudyUI extends JFrame {
         button.setBorder(BorderFactory.createEmptyBorder(8, 15, 8, 15));
     }
 
-    // In StudyUI.java, update the showCurrentCard method:
-
     private void showCurrentCard() {
         if (studyCards.isEmpty()) {
             // Display a message in the card panel
@@ -318,10 +378,12 @@ public class StudyUI extends JFrame {
             prevButton.setEnabled(false);
             nextButton.setEnabled(false);
             toggleAnswerButton.setEnabled(false);
+            deleteButton.setEnabled(false);
             return;
         }
 
         toggleAnswerButton.setEnabled(true);
+        deleteButton.setEnabled(true);
 
         if (studyCards.isEmpty()) {
             JOptionPane.showMessageDialog(this,

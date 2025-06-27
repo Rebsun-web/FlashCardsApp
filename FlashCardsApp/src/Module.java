@@ -84,4 +84,8 @@ public class Module implements Serializable {
     public void shuffleCards() {
         Collections.shuffle(cards);
     }
+
+    public void removeCard(Card cardToRemove) {
+        cards.remove(cardToRemove);
+    }
 }

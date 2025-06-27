@@ -1,9 +1,12 @@
-// FileUtils.java
+// FileUtils.java - Updated to match your actual directory structure
 import java.io.*;
 import java.nio.file.*;
+import java.util.*;
+import java.util.List;
 
 public class FileUtils {
-    private static final String APP_DATA_DIR = "flashcards";
+    // Update these paths to match your actual structure
+    private static final String APP_DATA_DIR = "src/flashcards";  // Changed from "flashcards"
     private static final String IMAGES_DIR = "images";
 
     // Get the application data directory
@@ -32,7 +35,44 @@ public class FileUtils {
         if (!dir.exists()) {
             dir.mkdirs();
         }
+        System.out.println("Looking for images in: " + dir.getAbsolutePath()); // Debug output
         return dir;
+    }
+
+    // NEW METHOD: Get all image files from a module directory, sorted by date
+    public static List<File> getModuleImagesSortedByDate(String moduleName) {
+        File moduleImagesDir = getModuleImagesDir(moduleName);
+        List<File> imageFiles = new ArrayList<>();
+
+        System.out.println("Scanning directory: " + moduleImagesDir.getAbsolutePath()); // Debug
+        System.out.println("Directory exists: " + moduleImagesDir.exists()); // Debug
+
+        if (moduleImagesDir.exists()) {
+            File[] files = moduleImagesDir.listFiles((dir, name) -> {
+                String lowerName = name.toLowerCase();
+                return lowerName.endsWith(".jpg") ||
+                        lowerName.endsWith(".jpeg") ||
+                        lowerName.endsWith(".png") ||
+                        lowerName.endsWith(".gif") ||
+                        lowerName.endsWith(".bmp");
+            });
+
+            if (files != null) {
+                System.out.println("Found " + files.length + " image files"); // Debug
+                // Sort by modification time (oldest first)
+                Arrays.sort(files, Comparator.comparingLong(File::lastModified));
+                imageFiles.addAll(Arrays.asList(files));
+
+                // Debug: print first few files
+                for (int i = 0; i < Math.min(3, files.length); i++) {
+                    System.out.println("Image " + i + ": " + files[i].getName());
+                }
+            } else {
+                System.out.println("No files found or directory listing failed"); // Debug
+            }
+        }
+
+        return imageFiles;
     }
 
     // Sanitize a string to be used as a file name
@@ -49,7 +89,7 @@ public class FileUtils {
                 writer.println("--------------------------------");
                 writer.println("This directory contains your FlashCards app data.");
                 writer.println();
-                writer.println("flashcards/ - Main application data directory");
+                writer.println("src/flashcards/ - Main application data directory");
                 writer.println("├── *.ser - Module data files");
                 writer.println("├── images/ - Main images directory");
                 writer.println("│   └── [ModuleName]/ - Module-specific image directories");
@@ -61,7 +101,7 @@ public class FileUtils {
         }
     }
 
-    // In FileUtils.java - Enhance the copyImageToModuleDir method
+    // Rest of the methods remain the same...
     public static File copyImageToModuleDir(File sourceImage, String moduleName) {
         if (sourceImage == null || !sourceImage.exists()) {
             System.out.println("Source image is null or doesn't exist");
